@@ -167,15 +167,14 @@ def get_graph_data(rsmi_list, class_list, filename):
    
 class GraphDataset():
 
-    def __init__(self, id, task, id1):
+    def __init__(self, id, task):
         self._task = task
         self._id = id
-        self._id1 = id1
         self.load()
 
     def load(self):
 
-        [rmol_dict, reaction_dict] = np.load('/homes/ss2971/Documents/AHO/AHO_Graph/%s_tasks_%s_cluster_%s.npz' %(self._task, self._id, self._id1), allow_pickle=True)['data']
+        [rmol_dict, reaction_dict] = np.load('/homes/ss2971/Documents/AHO/meta_graph/%s_tasks_%s.npz' %(self._task, self._id), allow_pickle=True)['data']
     
         self.rmol_n_node = rmol_dict['n_node']
         self.rmol_n_edge = rmol_dict['n_edge'] 
@@ -206,30 +205,30 @@ class GraphDataset():
     def __len__(self):
         return self.label.shape[0]
         
-# df = pd.read_csv(f"/homes/ss2971/Documents/AHO/AHO_Graph/test_tasks_graph_wo_cluster.csv")
+# df = pd.read_csv(f"/homes/ss2971/Documents/AHO/meta_graph/val_tasks_smiles.csv")
 # df = df.to_numpy()
-# np.save("/homes/ss2971/Documents/AHO/AHO_Graph/test_task_graph_cluster_wo", df)
+# np.save("/homes/ss2971/Documents/AHO/meta_graph/val_tasks", df)
 
-def load_dataset(task, id1):
-    load_dict = np.load('/homes/ss2971/Documents/AHO/AHO_Graph/%s_task_graph_cluster_%s.npy' %(task, id1), allow_pickle=True)
-    # load_dict = np.load('/homes/ss2971/Documents/AHO/AHO_Graph/%s_task_graph_cluster_%s_rnd.npy' %(task, id1), allow_pickle=True)
+def load_dataset(task):
+    load_dict = np.load('/homes/ss2971/Documents/AHO/meta_graph/%s_tasks.npy' %(task), allow_pickle=True)
     
     reactant_smiles = load_dict[:, 0]
     ligand_smiles = load_dict[:, 1]
     solvent_smiles = load_dict[:, 2]
-    ee_class = load_dict[:, 14]
-    ee = load_dict[:, 13]
+    ee_class = load_dict[:, 15]
+    ee = load_dict[:, 14]
 
-    filename1 = '/homes/ss2971/Documents/AHO/AHO_Graph/%s_tasks_react_cluster_%s.npz'%(task, id1)
-    filename2 = '/homes/ss2971/Documents/AHO/AHO_Graph/%s_tasks_lig_cluster_%s.npz'%(task, id1)
-    filename3 = '/homes/ss2971/Documents/AHO/AHO_Graph/%s_tasks_solv_cluster_%s.npz'%(task, id1)
+    filename1 = '/homes/ss2971/Documents/AHO/meta_graph/%s_tasks_react.npz'%(task)
+    filename2 = '/homes/ss2971/Documents/AHO/meta_graph/%s_tasks_lig.npz'%(task)
+    filename3 = '/homes/ss2971/Documents/AHO/meta_graph/%s_tasks_solv.npz'%(task)
     reactant_data = get_graph_data(reactant_smiles, ee_class, filename1)
     ligand_data = get_graph_data(ligand_smiles, ee_class, filename2)
     solvent_data = get_graph_data(solvent_smiles, ee_class, filename3)
+
     
-    data_react = GraphDataset(id='react', task=task, id1=id1)
-    data_lig = GraphDataset(id='lig', task=task, id1=id1)
-    data_solv = GraphDataset(id='solv', task=task, id1=id1)
+    data_react = GraphDataset(id='react', task=task)
+    data_lig = GraphDataset(id='lig', task=task)
+    data_solv = GraphDataset(id='solv', task=task)
     
     batchdata_react = list(map(list, zip(*data_react))) 
     reactant_graph = batchdata_react[0]
@@ -237,24 +236,24 @@ def load_dataset(task, id1):
     ligand_graph = batchdata_lig[0]
     batchdata_solv = list(map(list, zip(*data_solv)))  
     solvent_graph = batchdata_solv[0]
-    
-    dict = {'reactant_graph':reactant_graph, 'ligand_graph':ligand_graph, 'solvent_graph':solvent_graph, 'pressure':load_dict[:, 5], 'temperature':load_dict[:, 6], 'S/C':load_dict[:, 7], 'metal_1':load_dict[:, 8], 'metal_2':load_dict[:, 9], 'metal_3':load_dict[:, 10], 'add_1':load_dict[:, 11], 'add_2':load_dict[:, 12], 'ee_class':load_dict[:, 14], 'cluster':load_dict[:, 15]}
- 
+
+    dict = {'reactant_graph':reactant_graph, 'ligand_graph':ligand_graph, 'solvent_graph':solvent_graph, 'pressure':load_dict[:, 5], 'temperature':load_dict[:, 6], 'S/C':load_dict[:, 7], 'metal_1':load_dict[:, 9], 'metal_2':load_dict[:, 10], 'metal_3':load_dict[:, 11], 'add_1':load_dict[:, 12], 'add_2':load_dict[:, 13], 'ee_class':load_dict[:, 15], 'cluster':load_dict[:, 16]}
     data = pd.DataFrame(dict)
-    data.to_pickle(f"/homes/ss2971/Documents/AHO/AHO_Graph/{task}_tasks_graph_cluster_{id1}.pkl")
+
+    data.to_pickle(f"/homes/ss2971/Documents/AHO/meta_graph/{task}_tasks_graph.pkl")
     
     return None
 
-# load_dataset('test', 'oob')
+# load_dataset('val')
 
 def load_tasks_graph():
 
     # train tasks
-    data_train = pd.read_pickle(f"/homes/ss2971/Documents/AHO/AHO_Graph/train_tasks_graph_cluster_wo.pkl")
+    data_train = pd.read_pickle(f"/homes/ss2971/Documents/AHO/AHO_Graph/train_tasks_graph_cluster_1.pkl")
     dataset_train_tasks = {
-        'cluster': ['C1','C2','C3','C4','C5','C6','C7','C8']
+        'cluster': ['C1','C2','C3','C4','C5','C6','C7','C8','C9']
     }
-    
+
     train_tasks = dataset_train_tasks.get('cluster')
     train_dfs = dict.fromkeys(train_tasks)
     data_train.set_index("cluster", inplace = True)
@@ -281,9 +280,10 @@ def load_tasks_graph():
         val_dfs[task] = df
     
     # test tasks
-    data_test = pd.read_pickle(f"/homes/ss2971/Documents/AHO/AHO_Graph/test_tasks_graph_cluster_wo.pkl")
+    data_test = pd.read_pickle(f"/homes/ss2971/Documents/AHO/AHO_Graph/test_tasks_graph_cluster_1.pkl")
+    
     dataset_test_tasks = {
-        'cluster': ['C1','C2','C3','C4','C5','C6','C7','C8']
+        'cluster': ['C1','C2','C3','C4','C5','C6','C7','C8','C9']
     }
 
     test_tasks = dataset_test_tasks.get('cluster')
